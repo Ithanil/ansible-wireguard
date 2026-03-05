@@ -1,0 +1,26 @@
+- name: Ensure WireGuard is installed
+  ansible.builtin.apt:
+    name: wireguard
+    state: present
+    update_cache: true
+
+- name: Render WireGuard configuration
+  ansible.builtin.template:
+    src: "etc/wireguard/wg0.conf.j2"
+    dest: "/etc/wireguard/{{ wireguard_interface }}.conf"
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Restart WireGuard
+
+- name: Allow WireGuard UDP port in UFW
+  community.general.ufw:
+    rule: allow
+    port: "{{ wireguard_listen_port }}"
+    proto: udp
+
+- name: Ensure WireGuard tunnel is enabled and started
+  ansible.builtin.systemd:
+    name: "wg-quick@{{ wireguard_interface }}"
+    enabled: true
+    state: started

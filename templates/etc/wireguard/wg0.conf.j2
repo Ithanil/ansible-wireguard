@@ -1,0 +1,43 @@
+[Interface]
+Address = {{ wireguard_address if wireguard_address is string else wireguard_address | join(', ') }}
+ListenPort = {{ wireguard_listen_port }}
+PrivateKey = {{ wireguard_private_key }}
+{% if wireguard_dns is defined %}
+DNS = {{ wireguard_dns if wireguard_dns is string else wireguard_dns | join(', ') }}
+{% endif %}
+
+{% for peer_host in groups['wireguard'] | sort if peer_host != inventory_hostname %}
+{% set peer_hostvars = hostvars[peer_host] %}
+{% set peer_addresses = [peer_hostvars.wireguard_address] if peer_hostvars.wireguard_address is string else peer_hostvars.wireguard_address %}
+{% set peer_allowed_ips = [] %}
+{% for peer_address in peer_addresses %}
+{% set peer_ip = (peer_address | string).split('/')[0] %}
+{% set _ = peer_allowed_ips.append(peer_ip ~ '/' ~ ('128' if ':' in peer_ip else '32')) %}
+{% endfor %}
+{% set peer_preshared_key = wireguard_peer_preshared_keys[peer_host] if wireguard_peer_preshared_keys is defined and peer_host in wireguard_peer_preshared_keys else wireguard_preshared_key %}
+[Peer]
+# {{ peer_host }}
+PublicKey = {{ peer_hostvars.wireguard_public_key }}
+PresharedKey = {{ peer_preshared_key }}
+Endpoint = {{ peer_hostvars.wireguard_endpoint_host | default(peer_hostvars.ansible_host | default(peer_host)) }}:{{ peer_hostvars.wireguard_endpoint_port | default(wireguard_listen_port) }}
+AllowedIPs = {{ peer_allowed_ips | join(', ') }}
+PersistentKeepalive = {{ wireguard_persistent_keepalive }}
+
+{% endfor %}
+
+{% for peer in wireguard_extra_peers | default([]) %}
+[Peer]
+# {{ peer.name }}
+PublicKey = {{ peer.public_key }}
+{% if peer.preshared_key is defined %}
+PresharedKey = {{ peer.preshared_key }}
+{% else %}
+PresharedKey = {{ wireguard_preshared_key }}
+{% endif %}
+{% if peer.endpoint is defined %}
+Endpoint = {{ peer.endpoint }}
+{% endif %}
+AllowedIPs = {{ peer.allowed_ips if peer.allowed_ips is string else peer.allowed_ips | join(', ') }}
+PersistentKeepalive = {{  peer.persistent_keepalive | default(wireguard_persistent_keepalive) }}
+
+{% endfor %}

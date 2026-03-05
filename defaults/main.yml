@@ -1,0 +1,32 @@
+---
+# Name of the WireGuard interface.
+wireguard_interface: wg0
+
+# UDP listen port used by WireGuard.
+wireguard_listen_port: 51820
+
+# Whether to manage the WireGuard UDP port in UFW.
+wireguard_manage_ufw: true
+
+# Persistent keepalive interval in seconds for peers.
+wireguard_persistent_keepalive: 25
+
+# Default preshared key used for peers unless overridden.
+wireguard_preshared_key: "REPLACE_WITH_WIREGUARD_PRESHARED_KEY"
+
+# Optional per-mesh-peer PSK overrides keyed by inventory hostname.
+# Example:
+# wireguard_peer_preshared_keys:
+#   monitor: "REPLACE_WITH_MONITOR_PSK_OVERRIDE"
+wireguard_peer_preshared_keys: {}
+
+# Optional non-mesh peers to append in the generated config.
+# Example:
+# wireguard_extra_peers:
+#   - name: kube
+#     public_key: "REPLACE_WITH_KUBE_VM_WG_PUBLIC_KEY"
+#     preshared_key: "REPLACE_WITH_KUBE_VM_WG_PRESHARED_KEY"
+#     endpoint: "REPLACE_WITH_KUBE_VM_ENDPOINT:51820"
+#     allowed_ips:
+#       - 10.20.40.11/32
+wireguard_extra_peers: []
