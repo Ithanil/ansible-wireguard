@@ -13,11 +13,27 @@
     mode: "0600"
   notify: Restart WireGuard
 
-- name: Allow WireGuard UDP port in UFW
+- name: Allow WireGuard UDP port from mesh peers in UFW
   community.general.ufw:
     rule: allow
+    src: "{{ hostvars[item].wireguard_source_ip | default(hostvars[item].wireguard_endpoint_host | default(hostvars[item].ansible_host | default(item))) }}"
     port: "{{ wireguard_listen_port }}"
     proto: udp
+    comment: "WG {{ item }}"
+  loop: "{{ (groups['wireguard'] | default([])) | difference([inventory_hostname]) }}"
+  when: wireguard_manage_ufw | bool
+
+- name: Allow WireGuard UDP port from extra peers in UFW
+  community.general.ufw:
+    rule: allow
+    src: "{{ item.source_ip | default(item.endpoint | regex_replace('^\\[?([^\\]]+)\\]?(?::\\d+)?$', '\\1')) }}"
+    port: "{{ wireguard_listen_port }}"
+    proto: udp
+    comment: "WG {{ item.name | default('unnamed') }}"
+  loop: "{{ wireguard_extra_peers | default([]) }}"
+  when:
+    - wireguard_manage_ufw | bool
+    - item.endpoint is defined or item.source_ip is defined
 
 - name: Ensure WireGuard tunnel is enabled and started
   ansible.builtin.systemd:

@@ -10,7 +10,7 @@ and can be overridden with `wireguard_endpoint_host`/`wireguard_endpoint_port`.
 
 - Installs `wireguard`
 - Renders `/etc/wireguard/{{ wireguard_interface }}.conf`
-- Allows the WireGuard UDP port in UFW (per default)
+- Adds WireGuard UFW allow rules for expected peer sources
 - Enables and starts `wg-quick@{{ wireguard_interface }}`
 
 ## Required Host Variables
@@ -28,3 +28,7 @@ See defaults in `defaults/main.yml` for tunables such as:
 - keepalive
 - shared/override preshared keys
 - extra non-mesh peers
+
+For UFW allow rules, peer source IPs are derived from each peer endpoint.
+You can override source matching with `wireguard_source_ip` (for mesh hosts)
+or `source_ip` in `wireguard_extra_peers`.

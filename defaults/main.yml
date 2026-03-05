@@ -27,6 +27,11 @@ wireguard_peer_preshared_keys: {}
 #     public_key: "REPLACE_WITH_KUBE_VM_WG_PUBLIC_KEY"
 #     preshared_key: "REPLACE_WITH_KUBE_VM_WG_PRESHARED_KEY"
 #     endpoint: "REPLACE_WITH_KUBE_VM_ENDPOINT:51820"
+#     source_ip: "REPLACE_WITH_KUBE_VM_PUBLIC_IP"
 #     allowed_ips:
 #       - 10.20.40.11/32
 wireguard_extra_peers: []
+
+# Optional per-host override for expected WireGuard source IP used in peer UFW rules.
+# If unset, peers use wireguard_endpoint_host, then ansible_host, then inventory hostname.
+# wireguard_source_ip: "203.0.113.10"
